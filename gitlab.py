@@ -4,6 +4,8 @@ from simple_rest_client.api import API
 from simple_rest_client.exceptions import AuthError
 from simple_rest_client.resource import Resource
 
+from helpers import get_list, DataModel
+
 logger = logging.getLogger('gitlab')
 class HookRessource(Resource):
     actions = {
@@ -37,27 +39,14 @@ class GitlabAPI(object):
     def get_hooks(self, project_id):
         try:
             response = self.api.hooks.list(project_id)
+            return get_list(response, GitlabProjectHook)
         except AuthError as e:
             logger.exception("Erreur d'accès à la ressource")
-            #logger.warning("[Auth error]"+str(e.args))
             return []
-        hooks = []
-        for hook in response.body:
-            hooks.append(GitlabProjectHook(**hook))
-        return hooks, response
 
     def get_repos(self):
         response = self.api.projects.list()
-        #print(response.body)
-        projects = []
-        for repo in response.body:#liste convertie depuis le JSON
-            #print(repo)
-            projects.append(GitlabProject(**repo)) #unsplat le dict
-        return projects, response
-
-class DataModel(object):
-    def __init__(self, **kwargs):
-        self.__dict__.update(kwargs) #pythonista qui utilise les arguments du constructeur pour remplir les attributs de l'objet
+        return get_list(response, GitlabProject)
 
 class GitlabProject(DataModel):
     """
