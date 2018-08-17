@@ -8,7 +8,7 @@ n'existent pas sur Gitea. Vu qu'ils existent sur Gitlab,
 on aurait des cas où deux repo différents sur GitLab (`adhesion/api` et `billevent/api`)
 se retrouveraient avec le même nom sur Gitea. Super comme sauvegarde ...
 
-Du coup les '/' sont transformés en '_._'
+Du coup les `/` sont transformés en `_._`
 
 Exemple :
 `billevent/ticket-reader` devient `billevent_._ticket-reader`
