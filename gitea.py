@@ -54,7 +54,9 @@ class GiteaRepo(object):
     default_branch = "dev"
     created_at = "2018-08-15T17:00:24Z"
     updated_at = "2018-08-16T15:54:56Z"
-
+    @property
+    def gitlab_name(self):
+        return self.name.replace("_._", '/') #because '/' isn't allowed in Gitea, and there are no namespaces
 
 class GiteaAPI(ServerAPI):
     host = ""

@@ -1,3 +1,7 @@
+import json
+import logging
+
+logger = logging.getLogger()
 class ServerAPI(object):
     host = ''
     def __init__(self, host):
@@ -36,3 +40,8 @@ def save_config(args):
     with open(args.config_file, 'w') as config:
         args.do_save=False
         json.dump(args.__dict__, config)
+
+def printlist(list):
+    for item in list:
+        try:print(item.__dict__)
+        except AttributeError: print(item)

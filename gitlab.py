@@ -48,17 +48,20 @@ class GitlabProject(DataModel):
     'model' of a Gilab project response with only the interesting fields
     """
     id = 0
+    path_with_namespace = "diaspora/diaspora-project-site"
     description = ''
     default_branch = "master"
-    visibility = "public",
-    ssh_url_to_repo = "git@example.com:diaspora/diaspora-project-site.git",
-    http_url_to_repo = "http://example.com/diaspora/diaspora-project-site.git",
-    name = "Diaspora Project Site",
-    path =  "diaspora-project-site",
-    path_with_namespace = "diaspora/diaspora-project-site",
-    created_at = "2013-09-30T13:46:02Z",
-    last_activity_at = "2013-09-30T13:46:02Z",
-    creator_id = 3,
+    visibility = "public"
+    ssh_url_to_repo = "git@example.com:diaspora/diaspora-project-site.git"
+    http_url_to_repo = "http://example.com/diaspora/diaspora-project-site.git"
+    name = "Diaspora Project Site"
+    path =  "diaspora-project-site"
+    created_at = "2013-09-30T13:46:02Z"
+    last_activity_at = "2013-09-30T13:46:02Z"
+    creator_id = 3
+    @property
+    def gitea_name(self):
+        return self.path_with_namespace.replace('/', "_._")
 
 class GitlabProjectHook(DataModel):
     id = 1

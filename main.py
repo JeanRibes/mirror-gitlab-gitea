@@ -1,10 +1,11 @@
 import argparse
 
+from actions import establish_list
 from gitea import GiteaAPI
 from gitlab import GitlabAPI, GitlabProjectHook
 import logging
 
-from helpers import save_config, load_config
+from helpers import save_config, load_config, printlist
 
 logger = logging.getLogger(__name__)
 
@@ -70,14 +71,17 @@ if __name__ == '__main__':
     ga= GitlabAPI(host=args.gitlab_url, personal_token=args.personal_token)
     gt = GiteaAPI(host=args.gitea_url, api_key=args.api_key)
 
-    print("listing gitlab repos")
-    show_repos(ga)
+    repos_to_sync = establish_list(gitea=gt, gitlab=ga)
+    printlist(repos_to_sync)
 
-    print("testing a gitlab repo's webhooks")
-    show_hooks(ga,59)
-
-    print("testing gitea owned repos")
-    get_minez(gt)
+        #print("listing gitlab repos")
+        #show_repos(ga)
+    #
+        #print("testing a gitlab repo's webhooks")
+        #show_hooks(ga,59)
+    #
+        #print("testing gitea owned repos")
+        #get_minez(gt)
     #repos, res = ga.get_repos()
     #for repo in repos:
     #    hooks, res = ga.get_hooks(repo.id)
