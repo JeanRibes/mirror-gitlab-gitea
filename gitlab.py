@@ -4,7 +4,7 @@ from simple_rest_client.api import API
 from simple_rest_client.exceptions import AuthError
 from simple_rest_client.resource import Resource
 
-from helpers import get_list, DataModel
+from helpers import get_list, DataModel, ServerAPI
 
 logger = logging.getLogger('gitlab')
 class HookRessource(Resource):
@@ -13,14 +13,11 @@ class HookRessource(Resource):
         'retrieve': {'method': 'GET', 'url': 'projects/{}/hooks/{}'},
         'create': {'method': 'POST', 'url': 'projects/{}/hooks'},
     }
-class GitlabAPI(object):
+class GitlabAPI(ServerAPI):
     host = ""
     def __init__(self, host, personal_token=None, oauth_token=None):
-        self.host = host
-        assert host is not None, "Define a base URL for the Gitlab Server"
-        if not self.host.endswith('/'):
-            self.host += ''
-        self.api = API(api_root_url=self.host+'/api/v4',
+        super().__init__(host)
+        self.api = API(api_root_url=self.host+'api/v4',
                        headers={'Private-Token':personal_token} if personal_token is not None else
                        {'Authorization':'Bearer '+oauth_token} if oauth_token is not None else None,
                        timeout=60,
@@ -29,8 +26,6 @@ class GitlabAPI(object):
 
         self.api.add_resource(resource_name='projects')
         self.api.add_resource(resource_name='hooks', resource_class=HookRessource)
-        print(self.api.projects.actions)
-        print(self.api.hooks.actions)
 
     def create_hook(self, project_id, webhook_url):
         self.api.hooks.create(project_id, body=GitlabProjectHook(id=project_id,
