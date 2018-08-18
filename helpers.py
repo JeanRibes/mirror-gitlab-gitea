@@ -1,5 +1,6 @@
 import json
 import logging
+from typing import List
 
 logger = logging.getLogger()
 class ServerAPI(object):
@@ -41,7 +42,7 @@ def save_config(args):
         args.do_save=False
         json.dump(args.__dict__, config)
 
-def printlist(list):
+def printlist(list: List) -> None:
     for item in list:
         try:print(item.__dict__)
         except AttributeError: print(item)

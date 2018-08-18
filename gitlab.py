@@ -1,4 +1,5 @@
 import logging
+from typing import List
 
 from simple_rest_client.api import API
 from simple_rest_client.exceptions import AuthError
@@ -7,42 +8,6 @@ from simple_rest_client.resource import Resource
 from helpers import get_list, DataModel, ServerAPI
 
 logger = logging.getLogger('gitlab')
-class HookRessource(Resource):
-    actions = {
-        'list': {'method': 'GET', 'url': 'projects/{}/hooks'},
-        'retrieve': {'method': 'GET', 'url': 'projects/{}/hooks/{}'},
-        'create': {'method': 'POST', 'url': 'projects/{}/hooks'},
-    }
-class GitlabAPI(ServerAPI):
-    host = ""
-    def __init__(self, host, personal_token=None, oauth_token=None):
-        super().__init__(host)
-        self.api = API(api_root_url=self.host+'api/v4',
-                       headers={'Private-Token':personal_token} if personal_token is not None else
-                       {'Authorization':'Bearer '+oauth_token} if oauth_token is not None else None,
-                       timeout=60,
-                       json_encode_body=True,
-                       append_slash=False)
-
-        self.api.add_resource(resource_name='projects')
-        self.api.add_resource(resource_name='hooks', resource_class=HookRessource)
-
-    def create_hook(self, project_id, webhook_url):
-        self.api.hooks.create(project_id, body=GitlabProjectHook(id=project_id,
-                                                                          url=webhook_url,
-                                                                          token=''))
-    def get_hooks(self, project_id):
-        try:
-            response = self.api.hooks.list(project_id)
-            return get_list(response, GitlabProjectHook)
-        except AuthError as e:
-            logger.exception("Erreur d'accès à la ressource")
-            return []
-
-    def get_repos(self):
-        response = self.api.projects.list()
-        return get_list(response, GitlabProject)
-
 class GitlabProject(DataModel):
     """
     'model' of a Gilab project response with only the interesting fields
@@ -79,3 +44,54 @@ class GitlabProjectHook(DataModel):
     enable_ssl_verification = True
     #project_id = 0
     #created_at = "2012-10-12T17:04:47Z"
+class HookRessource(Resource):
+    actions = {
+        'list': {'method': 'GET', 'url': 'projects/{}/hooks'},
+        'retrieve': {'method': 'GET', 'url': 'projects/{}/hooks/{}'},
+        'create': {'method': 'POST', 'url': 'projects/{}/hooks'},
+    }
+class GroupRessource(Resource):
+    actions = {
+        'projects': {'method': 'GET', 'url': 'groups/{}/projects'},
+        'list': {'method': 'GET', 'url': 'groups'},
+        'retrieve': {'method': 'GET', 'url': 'groups/{}'},
+    }
+class GitlabAPI(ServerAPI):
+    host = ""
+    def __init__(self, host, personal_token=None, oauth_token=None):
+        super().__init__(host)
+        self.api = API(api_root_url=self.host+'api/v4',
+                       headers={'Private-Token':personal_token} if personal_token is not None else
+                       {'Authorization':'Bearer '+oauth_token} if oauth_token is not None else None,
+                       timeout=60,
+                       json_encode_body=True,
+                       append_slash=False)
+
+        self.api.add_resource(resource_name='projects')
+        self.api.add_resource(resource_name='hooks', resource_class=HookRessource)
+        self.api.add_resource(resource_name='groups', resource_class=GroupRessource)
+        print(self.api.groups.actions)
+
+    def create_hook(self, project_id, webhook_url):
+        self.api.hooks.create(project_id, body=GitlabProjectHook(id=project_id,
+                                                                          url=webhook_url,
+                                                                          token=''))
+    def get_hooks(self, project_id: int) -> List[GitlabProjectHook]:
+        try:
+            response = self.api.hooks.list(project_id)
+            return get_list(response, GitlabProjectHook)
+        except AuthError as e:
+            logger.exception("Erreur d'accès à la ressource")
+            return []
+
+    def get_repos(self) -> List[GitlabProject]:
+        response = self.api.projects.list()
+        print(response.headers)
+        repos = get_list(response, GitlabProject)
+        next_page = response.headers['X-Next-Page']
+        while response.headers['X-Page'] != response.headers['X-Total-Pages']:
+            print("FETCHING NEXT PAGE")
+            response = self.api.projects.list(params={'page':next_page})
+            next_page = response.headers['X-Next-Page']
+            repos += get_list(response, GitlabProject)
+        return repos
