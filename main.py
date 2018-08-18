@@ -2,7 +2,7 @@ import argparse
 import re
 from typing import List
 
-from actions import establish_list
+from actions import establish_list, migrate_list
 from gitea import GiteaAPI
 from gitlab import GitlabAPI, GitlabProjectHook, GitlabProject
 import logging
@@ -11,10 +11,10 @@ from helpers import save_config, load_config, printlist
 
 logger = logging.getLogger(__name__)
 
-def show_repos(repos):
+def show_repos(repos: List[GitlabProject]):
     for repo in repos:
         #print("[PROJECT]" + str(repo.__dict__))
-        print("{} {} {}".format(repo.name, repo.path_with_namespace, repo.namespace))
+        print("{} {} {}".format(repo.path_with_namespace, repo.http_url_to_repo, repo.gitea_name))
 
 def show_hooks(ga, repo_id):
     hooks = ga.get_hooks(repo_id)
@@ -79,6 +79,7 @@ def select_repos(repos: List[GitlabProject], regex: str):
     condition = re.compile(regex) #on compile la regex avant pour de meilleur perfs
     for repo in repos:
         if not condition.match(repo.path_with_namespace):
+            print("repo {} does not match {}".format(repo.path_with_namespace, regex))
             repos.remove(repo)
 
 if __name__ == '__main__':
@@ -87,16 +88,17 @@ if __name__ == '__main__':
         save_config(args)
     load_config(args)
 
-    ga= GitlabAPI(host=args.gitlab_url, personal_token=args.personal_token)
+    ga = GitlabAPI(host=args.gitlab_url, personal_token=args.personal_token)
     gt = GiteaAPI(host=args.gitea_url, api_key=args.api_key)
-
     repos = ga.get_repos()
+    gitea_repos = gt.list_repo()
     select_repos(repos, args.repo_regex)
-    show_repos(repos)
-    repos_to_sync = establish_list(gitlab_repos=repos,gitea=gt)
+    repos_to_sync = establish_list(gitlab_repos=repos, gitea_repos=gitea_repos)
 
     already_synced = [repo for repo in repos if repo not in repos_to_sync]
-    printlist(already_synced)
+    print("Repositories already synced")
+    show_repos(already_synced)
+    migrate_list(repos_to_sync, gt)
 
         #print("testing a gitlab repo's webhooks")
         #show_hooks(ga,59)

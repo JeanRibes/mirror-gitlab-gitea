@@ -1,8 +1,13 @@
+import json
+import logging
+
 from simple_rest_client.api import API
+from simple_rest_client.exceptions import ServerError
+from simple_rest_client.models import Response
 from simple_rest_client.resource import Resource
 
 from helpers import ServerAPI, DataModel, get_list
-
+logger = logging.getLogger()
 
 class ReposRessource(Resource):
     actions = {
@@ -16,7 +21,12 @@ class OrgRessource(Resource):
         'list_repos': {'method': 'GET', 'url': 'orgs/{}/repos'},
         'mines': {'method': 'GET', 'url': 'user/{}/orgs'},  # organisation du username
     }
+class MeRessource(Resource):
+    actions = {
+        'me':{'method':'GET','url':'user'},
+        'repos':{'method':'GET','url':'user/repos'}
 
+    }
 
 class GiteaOwner(DataModel):
     id = 2
@@ -64,12 +74,14 @@ class GiteaAPI(ServerAPI):
     def __init__(self, host, api_key):
         super().__init__(host)
         self.api = API(api_root_url=self.host + 'api/v1',
-                       headers={'authorization': api_key},
+                       params={'token': api_key},
+                       headers={'Content-Type':'application/json'},
                        timeout=60,
                        json_encode_body=True,
                        append_slash=False)
         self.api.add_resource(resource_name='repos', resource_class=ReposRessource)
         self.api.add_resource(resource_name='orgs', resource_class=OrgRessource)
+        self.api.add_resource(resource_name='user', resource_class=MeRessource)
 
     # def search_repo(self, query, mode='mirror', only_me=True, uid=None):
     #    response = self.api.repos.search(params={'q':query,
@@ -77,18 +89,22 @@ class GiteaAPI(ServerAPI):
     #                                             'mode':mode, #type de repo : fork, source, mirror, collaborative
     #                                             'exclusive':only_me #uniquement ceux qui appartiennent au user spécifié
     #                                             })
-    def list_repo(self, organization):
-        response = self.api.orgs.list_repos(organization)
+    def list_repo(self):
+        response = self.api.user.repos()
         return get_list(response, GiteaRepo)
 
-    def mirror_repo(self, clone_addr, repo_name, desc="Migrated by a script", username=None, password=None):
-        self.api.repos.migrate(body={
+    def mirror_repo(self, clone_addr, repo_name, desc="Migrated by a script", username=None, password=None, private=True):
+        body = {
             "auth_password": password,
             "auth_username": username,
             "clone_addr": clone_addr,
             "description": desc,
             "mirror": True,
-            "private": True,
+            "private": private,
             "repo_name": repo_name,
-            "uid": 0 #euh oui ...
-        })
+            "uid": self.api.user.me().body['id']
+        }
+        try:
+            return self.api.repos.migrate(body=body)
+        except ServerError:
+            logger.exception("Remote authentication might be required to clone this repository")
