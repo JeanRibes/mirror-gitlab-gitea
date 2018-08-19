@@ -31,7 +31,6 @@ def config_args() -> argparse.Namespace:
         epilog="While the Gitlab token is optionnal, the script will fail if the repositories are private"
     )
     parser.add_argument('--personal-token',
-                        nargs='?',
                         metavar='token',
                         help="Your Gitlab personal access token",
                         dest='personal_token')
@@ -50,7 +49,7 @@ def config_args() -> argparse.Namespace:
     parser.add_argument('-r', metavar='regex',
                         nargs='?',
                         help="The full path of repositories will need to match this regex",
-                        dest='repo_regex', default="^BdE",
+                        dest='repo_regex', default="",
                         )
     parser.add_argument('--fix-mirroring', action='store_true',
                         help="Remove and recreate repos that are not in sync, with 'mirror'=false",

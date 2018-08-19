@@ -1,9 +1,12 @@
 #!/bin/bash
-if [ -e .env ]
+if [ -e .env ] 
 then
     . ./.env
 else
-    echo "Not loading .env - it doesn't exist"
+        if [ $# == 0 ]
+	then
+		echo "Not loading .env - it doesn't exist"
+	fi
 fi
 if [ -e venv ] && [ -d venv ]
 then
@@ -15,9 +18,15 @@ else
     . venv/bin/activate
     pip install -r requirements.txt
 fi
-python3 main.py --gitea  $GITEA_URL\
+#if [ "$#" != "0" ]
+if [ $# != 0 ]
+then
+	python3 main.py $@
+else
+	python3 main.py --gitea  $GITEA_URL\
                --gitlab $GITLAB_URL \
                -r '^BdEINSALyon' \
                --api-key  $API_KEY\
                --personal-token $PERSONAL_TOKEN\
                --fix-mirroring
+fi
