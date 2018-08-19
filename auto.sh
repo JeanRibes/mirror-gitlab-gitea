@@ -25,7 +25,7 @@ then
 else
 	python3 main.py --gitea  $GITEA_URL\
                --gitlab $GITLAB_URL \
-               -r '^BdEINSALyon' \
+               -r $REPO_REGEX \
                --api-key  $API_KEY\
                --personal-token $PERSONAL_TOKEN\
                --fix-mirroring
