@@ -2,6 +2,17 @@
 
 Script python qui permet un mirroring automatique des repos GitLab vers mon Gitea
 Utilise **Python v3.5+**
+## Installation
+`sh auto.sh`
+Le script automatique prend ses valeurs depuis `.env`
+```
+API_KEY= #gitea api key
+PERSONAL_TOKEN=#gitlab personal token
+GITEA_URL=
+GITLAB_URL=
+REPO_REGEX= #regex that specifies which repos will be synced by matching the full path
+```
+Pour cloner tous les repos du BdE, on peut utiliser la regex `"^BdEINSALyon"` par exemple
 # Utilisation
 Créez un utilisateur sur le serveur Gitea qui recevra les backups et créez un nouveau Access Token
 (*Settings*>*Applications*>*Generate new Token*)
@@ -45,4 +56,4 @@ projets ont leur auto-miroir désactivé
 
 ## Bugs & fonctionnalités manquantes
 Il n'est pas possible de sauvegarder un repo privé
-la regex ne marche pas tout le temps (``^BdE` matche `al26p/home-lock_reader`
+la regex ne marche pas tout le temps (``^BdE` matche `al26p/home-lock_reader`)
