@@ -1,5 +1,10 @@
 #!/bin/bash
-. ./.env
+if [ -e .env ]
+then
+    . ./.env
+else
+    echo "Not loading .env - it doesn't exist"
+fi
 if [ -e venv ] && [ -d venv ]
 then
     echo "Virtualenv already installed"
@@ -10,8 +15,8 @@ else
     . venv/bin/activate
     pip install -r requirements.txt
 fi
-python3 main.py --gitea 'https://git.ribes.me' \
-               --gitlab 'https://git.bde-insa-lyon.fr' \
+python3 main.py --gitea  $GITEA_URL\
+               --gitlab $GITLAB_URL \
                -r '^BdEINSALyon' \
                --api-key  $API_KEY\
                --personal-token $PERSONAL_TOKEN\

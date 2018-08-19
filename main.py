@@ -76,8 +76,14 @@ if __name__ == '__main__':
     print("Repositories already synced:")
     show_repos(already_synced)
     brokens = verify_repos(gitea_repos)
+
     if args.fix_mirrors and len(brokens)>0:
         print("Re-creating repos that are not mirroring Gitlab")
         delete_list(repos=brokens, gt=gt)
-    elif len(brokens)>0: print("Some backups are broken, use option '--fix-mirroring' to re-migrate them properly")
-    migrate_list(repos=repos_to_sync, gt=gt)
+        migrate_list(
+            repos=establish_list(repos,list(set(gitea_repos)-set(brokens))), #'hack' that migrates previously broken repos and missing repos
+            gt=gt)
+    elif len(brokens)>0:
+        print("Some backups are broken, use option '--fix-mirroring' to re-migrate them properly")
+    else:
+        migrate_list(repos=repos_to_sync, gt=gt)

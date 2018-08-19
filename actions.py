@@ -42,7 +42,7 @@ def convert_gitlab_gitea(gitlab: List[GitlabProject], gitea:List[GiteaRepo])->Li
     gitlab_names = [repo.name for repo in gitlab]
     return [repo for repo in gitea if repo.gitlab_name in gitlab_names]
 
-def verify_repos(repos: List[GiteaRepo]):
+def verify_repos(repos: List[GiteaRepo])->List[GiteaRepo]:
     sync_broken = [r for r in repos if not r.mirror]
     if len(sync_broken)>0:
         logger.warning("Some repositories on Gitea are not mirroring their Gitlab counterpart")

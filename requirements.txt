@@ -1,16 +1,1 @@
-aiohttp==3.3.2
-async-timeout==3.0.0
-attrs==18.1.0
-certifi==2018.8.13
-chardet==3.0.4
-idna==2.7
-idna-ssl==1.1.0
-json-encoder==0.4.4
-multidict==4.3.1
-python-status==1.0.1
-requests==2.19.1
 simple-rest-client==0.5.3
-singledispatch==3.4.0.3
-six==1.11.0
-urllib3==1.23
-yarl==1.2.6
