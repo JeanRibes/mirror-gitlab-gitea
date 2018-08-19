@@ -1,13 +1,18 @@
 # sync-bde
 
 Script python qui permet un mirroring automatique des repos GitLab vers mon Gitea
+
+Le conteneur Docker va exécuter le script toutes les x heures pour récupérer les nouveaux repos.
+Pendant ce temps-là, Gitea va pull les repos toutes les 8 heures.
+
 Utilise **Python v3.5+**
+
 # Installation
 ## Avec Docker
 ```
 docker build -t image_name .
-docker run --rm -e API_KEY= -e PERSONAL_TOKEN= -e GITEA_URL= -e GITLAB_URL= -e REPO_REGEX="" image_name
-#ou en utilisant la ligne de commande directement
+docker run -d -e API_KEY= -e PERSONAL_TOKEN= -e GITEA_URL= -e GITLAB_URL= -e REPO_REGEX="" -e TIME_INTERVAL=24h image_name #va tourner continuellement
+#ou en utilisant la ligne de commande directement, 'one-off'
 docker run --rm image_name python main.py -h
 ```
 
@@ -22,12 +27,16 @@ GITLAB_URL=
 REPO_REGEX= #regex that specifies which repos will be synced by matching the full path
 ```
 Pour cloner tous les repos du BdE, on peut utiliser la regex `"^BdEINSALyon"` par exemple
+
 # Utilisation
-Créez un utilisateur sur le serveur Gitea qui recevra les backups et créez un nouveau Access Token
+## Setup initial
+Créez un utilisateur sur le serveur Gitea qui recevra les backups et créez un nouveau Access Token.
 (*Settings*>*Applications*>*Generate new Token*)
 Spécifiez une regex qui sera utilisée pour choisir si le repo doit être sauvegardé.
-
-Aide :
+## Restauration
+Pour travailler quand Gitlab est down (souvent xD lol), il suffit de se créer un compte sur Gitea et de forker les repos sauvegardés.
+Ne désactivez pas le mirroring pour commit sur un repo Gitea, sinon il sera supprimmé et re-crée depuis Gitlab !
+## Aide
 ```
 usage: main.py [-h] [--personal-token [token]] [--api-key token] [--gitlab url] [--gitea url] [-c [file]] [-r [regex]] [-S]
 
@@ -64,5 +73,4 @@ Idéalement il devrait vérifier quels repos sont manquants sur Gitea et alerter
 projets ont leur auto-miroir désactivé
 
 ## Bugs & fonctionnalités manquantes
-Il n'est pas possible de sauvegarder un repo privé
 la regex ne marche pas tout le temps (``^BdE` matche `al26p/home-lock_reader`)

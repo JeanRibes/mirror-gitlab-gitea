@@ -9,4 +9,5 @@ ENV PERSONAL_TOKEN=""
 ENV GITEA_URL=""
 ENV GITLAB_URL=""
 ENV REPO_REGEX=""
-CMD /app/auto.sh
+ENV TIME_INTERVAL=2h
+CMD /app/forever.sh
