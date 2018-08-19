@@ -2,7 +2,16 @@
 
 Script python qui permet un mirroring automatique des repos GitLab vers mon Gitea
 Utilise **Python v3.5+**
-## Installation
+# Installation
+## Avec Docker
+```
+docker build -t image_name .
+docker run --rm -e API_KEY= -e PERSONAL_TOKEN= -e GITEA_URL= -e GITLAB_URL= -e REPO_REGEX="" image_name
+#ou en utilisant la ligne de commande directement
+docker run --rm image_name python main.py -h
+```
+
+## Locale
 `sh auto.sh`
 Le script automatique prend ses valeurs depuis `.env`
 ```
