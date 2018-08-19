@@ -4,7 +4,6 @@ from gitea import GiteaAPI
 from gitlab import GitlabAPI, GitlabProjectHook, GitlabProject
 import logging
 
-from helpers import save_config, load_config, printlist
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +24,7 @@ def get_minez(gt):
         print("repo {} owned by {} aka {}".format(repo.name, repo.owner.login,
                                                   repo.owner.username))
 
-def config_args():
+def config_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Set up automatic mirroring from GitLab to Gitea in batch",
     allow_abbrev=True,
@@ -48,35 +47,23 @@ def config_args():
                         help='URL of the Gitea host',
                         metavar='url',
                         dest='gitea_url')
-    parser.add_argument('-c', metavar='file',
-                        nargs='?',
-                        help='Configuration file',
-                        dest='config_file', default=".sync.json",
-                        )
-    parser.add_argument('-C',
-                        help='Disable loading config file',
-                        action='store_false',
-                        dest='load_config_file', default=".sync.json",
-                        )
     parser.add_argument('-r', metavar='regex',
                         nargs='?',
                         help="The full path of repositories will need to match this regex",
                         dest='repo_regex', default="^BdE",
                         )
-    parser.add_argument('-S',
-                        action='store_true',
-                        help='Save command-line arguments to config file',
-                        dest='do_save',
-                        )
-    parser.print_help()
-    return parser
+    parser.add_argument('--fix-mirroring', action='store_true',
+                        help="Remove and recreate repos that are not in sync, with 'mirror'=false",
+                        dest='fix_mirrors')
+    args = parser.parse_args()
+    if args.api_key and args.gitea_url and args.gitlab_url:
+        return args
+    else:
+        parser.print_help()
+        parser.exit(status=1, message="Missing things are missing, exiting\n")
 
 if __name__ == '__main__':
-    args = config_args().parse_args()
-    if args.do_save:
-        save_config(args)
-    if args.load_config_file:
-        load_config(args)
+    args = config_args()
 
     ga = GitlabAPI(host=args.gitlab_url, personal_token=args.personal_token)
     gt = GiteaAPI(host=args.gitea_url, api_key=args.api_key, personal_token=args.personal_token)
@@ -88,17 +75,9 @@ if __name__ == '__main__':
     already_synced = [repo for repo in repos if repo not in repos_to_sync]
     print("Repositories already synced:")
     show_repos(already_synced)
-    brokens = verify_repos(gitea_repos, gt)
-    #delete_list(repos=already_synced, gt=gt)
+    brokens = verify_repos(gitea_repos)
+    if args.fix_mirrors and len(brokens)>0:
+        print("Re-creating repos that are not mirroring Gitlab")
+        delete_list(repos=brokens, gt=gt)
+    elif len(brokens)>0: print("Some backups are broken, use option '--fix-mirroring' to re-migrate them properly")
     migrate_list(repos=repos_to_sync, gt=gt)
-
-        #print("testing a gitlab repo's webhooks")
-        #show_hooks(ga,59)
-    #
-        #print("testing gitea owned repos")
-        #get_minez(gt)
-    #repos, res = ga.get_repos()
-    #for repo in repos:
-    #    hooks, res = ga.get_hooks(repo.id)
-    #    for hook in hooks:
-    #        print(hook.__dict__)

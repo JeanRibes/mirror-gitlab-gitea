@@ -1,6 +1,7 @@
 # sync-bde
 
 Script python qui permet un mirroring automatique des repos GitLab vers mon Gitea
+Utilise **Python v3.5+**
 # Utilisation
 Créez un utilisateur sur le serveur Gitea qui recevra les backups et créez un nouveau Access Token
 (*Settings*>*Applications*>*Generate new Token*)

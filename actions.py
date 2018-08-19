@@ -15,34 +15,34 @@ def fix_mirrors(gitea_repos: List[GiteaRepo]):
     non_mirrors = [repo for repo in gitea_repos if repo.mirror==False]
 
 def migrate_list(repos: List[GitlabProject], gt: GiteaAPI):
-    print("Migrating projects to Gitea")
+    print("Migrating projects to Gitea") if len(repos)>0 else None
     i,max=1,len(repos)
     for repo in repos:
         stdout.write("({}/{}) Migrating {}".format(i,max,repo.path_with_namespace))
         stdout.flush()
         response = gt.mirror_repo(clone_addr=repo.clone_addr(personal_token=gt.personal_token),
-                       repo_name=repo.gitea_name)
+                       repo_name=repo.gitea_name, private=repo.private)
         print("\r{}({}/{}) Migrated  {}   ".format("[Failed]" if response == False else '',
                                                   i,max,
                                       repo.path_with_namespace))
         i+=1
-def delete_list(repos: List[GitlabProject], gt: GiteaAPI):
+def delete_list(repos: List[GiteaRepo], gt: GiteaAPI):
     print("Deleting repositories from Gitea")
     i,max=1,len(repos)
     for repo in repos:
-        stdout.write("({}/{}) Deleting ".format(i,max)+repo.path_with_namespace) #pour print sans saut à la ligne
+        stdout.write("({}/{}) Deleting ".format(i,max)+repo.gitlab_name) #pour print sans saut à la ligne
         stdout.flush()
-        response = gt.delete_repo(repo.gitea_name)
+        response = gt.delete_repo(repo.name)
         print("\r{}({}/{}) Deleted  {}".format("[Failed]" if response==False else '',
                                               i,max,
-                                      repo.path_with_namespace))
+                                      repo.gitlab_name))
         i+=1
 
 def convert_gitlab_gitea(gitlab: List[GitlabProject], gitea:List[GiteaRepo])->List[GiteaRepo]:
     gitlab_names = [repo.name for repo in gitlab]
     return [repo for repo in gitea if repo.gitlab_name in gitlab_names]
 
-def verify_repos(repos: List[GiteaRepo], gt:GiteaAPI):
+def verify_repos(repos: List[GiteaRepo]):
     sync_broken = [r for r in repos if not r.mirror]
     if len(sync_broken)>0:
         logger.warning("Some repositories on Gitea are not mirroring their Gitlab counterpart")

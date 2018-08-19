@@ -36,13 +36,3 @@ def load_config(args):
                 logger.exception("Error readind file {}".format(args.config_file))
     except FileNotFoundError:
         pass
-
-def save_config(args):
-    with open(args.config_file, 'w') as config:
-        args.do_save=False
-        json.dump(args.__dict__, config)
-
-def printlist(list: List) -> None:
-    for item in list:
-        try:print(item.__dict__)
-        except AttributeError: print(item)

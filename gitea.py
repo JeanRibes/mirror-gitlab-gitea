@@ -96,7 +96,7 @@ class GiteaAPI(ServerAPI):
         response = self.api.user.repos()
         return get_list(response, GiteaRepo)
 
-    def mirror_repo(self, clone_addr, repo_name, desc="Migrated by a script", username=None, password=None, private=True):
+    def mirror_repo(self, clone_addr, repo_name, desc="Fork this repo to modify it", username=None, password=None, private=True):
         body = {
             "auth_password": password,
             "auth_username": username,

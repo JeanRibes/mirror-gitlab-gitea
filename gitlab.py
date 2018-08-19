@@ -29,8 +29,12 @@ class GitlabProject(DataModel):
     @property
     def gitea_name(self):
         return self.path_with_namespace.replace('/', "_._")
+    @property
+    def private(self)->bool:
+        if self.visibility=='public':return True
+        else: return False
 
-    def clone_addr(self, personal_token):
+    def clone_addr(self, personal_token)->str:
         host = re.compile("^https?://(?P<base_url>[^/]+)").findall(self.http_url_to_repo)[0]
         return "https://oauth2:{}@{}/{}".format(personal_token,host, self.path_with_namespace)
 
