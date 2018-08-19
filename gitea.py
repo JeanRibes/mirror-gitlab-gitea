@@ -1,5 +1,6 @@
 import json
 import logging
+from typing import List
 
 from simple_rest_client.api import API
 from simple_rest_client.exceptions import ServerError
@@ -13,6 +14,7 @@ class ReposRessource(Resource):
     actions = {
         'search': {'method': 'GET', 'url': 'repos/search'},  # il faut une query 'q'=recherche
         'migrate': {'method': 'POST', 'url': 'repos/migrate'},
+        'delete': {'method': 'DELETE', 'url': 'repos/{}/{}'},
     }
 
 
@@ -71,7 +73,7 @@ class GiteaRepo(object):
 class GiteaAPI(ServerAPI):
     host = ""
 
-    def __init__(self, host, api_key):
+    def __init__(self, host, api_key, personal_token):
         super().__init__(host)
         self.api = API(api_root_url=self.host + 'api/v1',
                        params={'token': api_key},
@@ -79,6 +81,7 @@ class GiteaAPI(ServerAPI):
                        timeout=60,
                        json_encode_body=True,
                        append_slash=False)
+        self.personal_token = personal_token
         self.api.add_resource(resource_name='repos', resource_class=ReposRessource)
         self.api.add_resource(resource_name='orgs', resource_class=OrgRessource)
         self.api.add_resource(resource_name='user', resource_class=MeRessource)
@@ -89,7 +92,7 @@ class GiteaAPI(ServerAPI):
     #                                             'mode':mode, #type de repo : fork, source, mirror, collaborative
     #                                             'exclusive':only_me #uniquement ceux qui appartiennent au user spécifié
     #                                             })
-    def list_repo(self):
+    def list_repo(self)->List[GiteaRepo]:
         response = self.api.user.repos()
         return get_list(response, GiteaRepo)
 
@@ -104,7 +107,15 @@ class GiteaAPI(ServerAPI):
             "repo_name": repo_name,
             "uid": self.api.user.me().body['id']
         }
+        #print(json.dumps(body))
         try:
             return self.api.repos.migrate(body=body)
         except ServerError:
             logger.exception("Remote authentication might be required to clone this repository")
+            return False
+
+    def delete_repo(self, repo_name):
+        response = self.api.repos.delete(self.api.user.me().body['username'], repo_name)
+        if response.status_code != 204:
+            logger.warning("Repo {} might not have been deleted from {}".format(repo_name, self.host))
+            return False

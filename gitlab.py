@@ -1,4 +1,6 @@
 import logging
+import re
+import sys
 from typing import List
 
 from simple_rest_client.api import API
@@ -27,6 +29,11 @@ class GitlabProject(DataModel):
     @property
     def gitea_name(self):
         return self.path_with_namespace.replace('/', "_._")
+
+    def clone_addr(self, personal_token):
+        host = re.compile("^https?://(?P<base_url>[^/]+)").findall(self.http_url_to_repo)[0]
+        return "https://oauth2:{}@{}/{}".format(personal_token,host, self.path_with_namespace)
+
 
 class GitlabProjectHook(DataModel):
     id = 1
@@ -70,7 +77,7 @@ class GitlabAPI(ServerAPI):
         self.api.add_resource(resource_name='projects')
         self.api.add_resource(resource_name='hooks', resource_class=HookRessource)
         self.api.add_resource(resource_name='groups', resource_class=GroupRessource)
-        print(self.api.groups.actions)
+      #  print(self.api.groups.actions)
 
     def create_hook(self, project_id, webhook_url):
         self.api.hooks.create(project_id, body=GitlabProjectHook(id=project_id,
@@ -86,12 +93,17 @@ class GitlabAPI(ServerAPI):
 
     def get_repos(self) -> List[GitlabProject]:
         response = self.api.projects.list()
-        print(response.headers)
+       # print(response.headers)
         repos = get_list(response, GitlabProject)
         next_page = response.headers['X-Next-Page']
+        sys.stdout.write("Fetching all Gitlab repos (1/{})".format(response.headers['X-Total-Pages']))
+        sys.stdout.flush()
         while response.headers['X-Page'] != response.headers['X-Total-Pages']:
-            print("FETCHING NEXT PAGE")
             response = self.api.projects.list(params={'page':next_page})
             next_page = response.headers['X-Next-Page']
+            sys.stdout.write("\rFetching all Gitlab repos ({}/{})".format(response.headers['X-Page'],
+                                                                          response.headers['X-Total-Pages']))
+            sys.stdout.flush()
             repos += get_list(response, GitlabProject)
+        print()
         return repos

@@ -15,8 +15,8 @@ Set up automatic mirroring from GitLab to Gitea in batch
 optional arguments:
   -h, --help            show this help message and exit
   --personal-token [token]
-                        Your Gitlab personal access token
-  --api-key token       Your Gitea api key
+                        Your Gitlab personal access token. Will be sent to gitea host to clone private repos
+  --api-key token       Your Gitea api key. Needed to migrate repos
   --gitlab url          URL of the Gitlab host
   --gitea url           URL of the Gitea host
   -c [file]             Configuration file

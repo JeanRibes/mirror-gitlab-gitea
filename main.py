@@ -1,8 +1,5 @@
 import argparse
-import re
-from typing import List
-
-from actions import establish_list, migrate_list
+from actions import *
 from gitea import GiteaAPI
 from gitlab import GitlabAPI, GitlabProjectHook, GitlabProject
 import logging
@@ -14,7 +11,7 @@ logger = logging.getLogger(__name__)
 def show_repos(repos: List[GitlabProject]):
     for repo in repos:
         #print("[PROJECT]" + str(repo.__dict__))
-        print("{} {} {}".format(repo.path_with_namespace, repo.http_url_to_repo, repo.gitea_name))
+        print("   {} {} {}".format(repo.path_with_namespace, repo.http_url_to_repo, repo.gitea_name))
 
 def show_hooks(ga, repo_id):
     hooks = ga.get_hooks(repo_id)
@@ -56,6 +53,11 @@ def config_args():
                         help='Configuration file',
                         dest='config_file', default=".sync.json",
                         )
+    parser.add_argument('-C',
+                        help='Disable loading config file',
+                        action='store_false',
+                        dest='load_config_file', default=".sync.json",
+                        )
     parser.add_argument('-r', metavar='regex',
                         nargs='?',
                         help="The full path of repositories will need to match this regex",
@@ -69,36 +71,26 @@ def config_args():
     parser.print_help()
     return parser
 
-def select_repos(repos: List[GitlabProject], regex: str):
-    """
-    supprime de la liste les repos qui ne corresponent pas à la regex
-    :param repos:
-    :param regex:
-    :return:
-    """
-    condition = re.compile(regex) #on compile la regex avant pour de meilleur perfs
-    for repo in repos:
-        if not condition.match(repo.path_with_namespace):
-            print("repo {} does not match {}".format(repo.path_with_namespace, regex))
-            repos.remove(repo)
-
 if __name__ == '__main__':
     args = config_args().parse_args()
     if args.do_save:
         save_config(args)
-    load_config(args)
+    if args.load_config_file:
+        load_config(args)
 
     ga = GitlabAPI(host=args.gitlab_url, personal_token=args.personal_token)
-    gt = GiteaAPI(host=args.gitea_url, api_key=args.api_key)
+    gt = GiteaAPI(host=args.gitea_url, api_key=args.api_key, personal_token=args.personal_token)
     repos = ga.get_repos()
     gitea_repos = gt.list_repo()
     select_repos(repos, args.repo_regex)
     repos_to_sync = establish_list(gitlab_repos=repos, gitea_repos=gitea_repos)
 
     already_synced = [repo for repo in repos if repo not in repos_to_sync]
-    print("Repositories already synced")
+    print("Repositories already synced:")
     show_repos(already_synced)
-    migrate_list(repos_to_sync, gt)
+    brokens = verify_repos(gitea_repos, gt)
+    #delete_list(repos=already_synced, gt=gt)
+    migrate_list(repos=repos_to_sync, gt=gt)
 
         #print("testing a gitlab repo's webhooks")
         #show_hooks(ga,59)
