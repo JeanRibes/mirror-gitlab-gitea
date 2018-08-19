@@ -1,4 +1,10 @@
-# mirror-gitlab-gitea
+mirror-gitlab-gitea
+===================
+
+[![](https://img.shields.io/docker/pulls/jeanribes/mirror-gitlab-gitea.svg)](https://hub.docker.com/r/jeanribes/mirror-gitlab-gitea/)
+
+![](https://badgen.net/badge/Python/3.5+/green)  ![](https://badgen.net/badge/License/GPLv3/cyan)
+
 This software aims at helping unstable [Gitlab](https://gitlab.com) deployments (badly dockerized !) by setting up mirrors to a simpler Git web host, [Gitea server](https://gitea.io/).
 
 It consits of a Python script that mirror all regex-matching Gitlab projects on a Gitea server in bulk.
@@ -13,17 +19,17 @@ You will need
 * a gitlab **Personal Access Token** for mirroring private repositories (required), get it in *Settings > Access Tokens*
 ## Docker daemon
 ```
-docker pull jeanribes/mirror-gitlab-gitea
-docker run -d -e API_KEY='' -e PERSONAL_TOKEN='' -e GITEA_URL='' -e GITLAB_URL='' -e REPO_REGEX='' -e TIME_INTERVAL=24h jeanribes/mirror-gitlab-gitea
+$ docker pull jeanribes/mirror-gitlab-gitea
+$ docker run -d -e API_KEY='' -e PERSONAL_TOKEN='' -e GITEA_URL='' -e GITLAB_URL='' -e REPO_REGEX='' -e TIME_INTERVAL=24h jeanribes/mirror-gitlab-gitea
 ```
 ## Docker one-off command
 ```
-docker run -rm jeanribes/mirror-gitlab-gitea python main.py -h
+$ docker run -rm jeanribes/mirror-gitlab-gitea python main.py -h
 ```
 ## Shell
 ```
-git clone https://github.com/JeanRibes/mirror-gitlab-gitea.git && cd mirror-gitlab-gitea
-./auto.sh -h #will install a virtualenv on the first run
+$ git clone https://github.com/JeanRibes/mirror-gitlab-gitea.git && cd mirror-gitlab-gitea
+$ ./auto.sh -h #will install a virtualenv on the first run
 ```
 The helper script `auto.sh` will attempt to load required values from a `.env` file when given no argument
 ```
