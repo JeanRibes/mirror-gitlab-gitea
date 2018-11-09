@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 if [ -e .env ] 
 then
     . ./.env
