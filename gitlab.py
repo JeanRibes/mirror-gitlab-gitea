@@ -36,7 +36,8 @@ class GitlabProject(DataModel):
 
     def clone_addr(self, personal_token)->str:
         host = re.compile("^https?://(?P<base_url>[^/]+)").findall(self.http_url_to_repo)[0]
-        return "https://oauth2:{}@{}/{}".format(personal_token,host, self.path_with_namespace)
+        proto = "https" if self.http_url_to_repo[4] == "s" else "http"
+        return "{}://oauth2:{}@{}/{}".format(proto, personal_token,host, self.path_with_namespace)
 
 
 class GitlabProjectHook(DataModel):
